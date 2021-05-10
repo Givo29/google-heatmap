@@ -1,4 +1,4 @@
-const data = `longitude,latitude,quantity
+const data = `latitude,longitude,quantity
 37.782551,-122.445368,100
 37.782745,-122.444586,40
 37.782842,-122.443688,20
