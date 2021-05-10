@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DBW Heatmap</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <link rel="stylesheet" type="text/css" href="./style.css" />
+    <script src="./data/pointData.js"></script>
+    <script src="./index.js"></script>
+</head>
+
+<body>
+    <div id="floating-panel">
+        <button onclick="toggleHeatmap()">Toggle Heatmap</button>
+        <button onclick="togglePins()">Toggle Pins</button>
+        <div class="slidecontainer">
+            Max Qty
+            <br />
+            <input type="range" step="10" oninput="changeMaxRange(this.value)" id="slider" />
+            <label id="sliderLabel"></label>
+        </div>
+    </div>
+    <div id="map"></div>
+</body>
+
+</html>
+
+<script
+    src="https://maps.googleapis.com/maps/api/js?key=<API_KEY>&callback=initMap&libraries=visualization&v=weekly"
+    async></script>
