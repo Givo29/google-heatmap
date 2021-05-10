@@ -122,8 +122,8 @@ function initMap() {
     ],
     
     map = new google.maps.Map(document.getElementById("map"), {
-      zoom: 5,
-      center: { lat: -26.4390917, lng: 133.281323 },
+      zoom: 15,
+      center: { lat: 37.775, lng: -122.434 },
       mapTypeControlOptions: {
         mapTypeIds: ["roadmap", "satellite", "hybrid", "terrain", "grey"],
       },
