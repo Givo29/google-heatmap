@@ -157,11 +157,21 @@ function initMap() {
     gradient: gradient,
   });
 
+  
   markers = sortedData.map((element) => {
+    let infoWindow = new google.maps.InfoWindow();
+    infoWindow.setContent(`<strong>Name:</strong> ${element.name}<br /><strong>ID:</strong> ${element.id}<br /><strong>Quantity:</strong> ${parseFloat(element.quantity).toFixed(2)}`
+    );
     var marker = new google.maps.Marker({
       position: new google.maps.LatLng(element.latitude, element.longitude),
       title: parseFloat(element.quantity).toFixed(0),
       map: null,
+    });
+    marker.addListener("mouseover", (_) => {
+      infoWindow.open(map, marker);
+    });
+    marker.addListener("mouseout", (_) => {
+      infoWindow.close();
     });
     return marker;
   });
