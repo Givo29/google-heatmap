@@ -1,4 +1,5 @@
 let map, heatmap;
+let markersEnabled = true;
 let markersToRender = [];
 const locationData = parseCSV(data);
 const sortedData = locationData.sort(
@@ -26,6 +27,7 @@ function toggleHeatmap() {
 }
 
 function togglePins() {
+  markersEnabled = markersEnabled ? false : true;
   markersToRender.forEach((marker) => {
     marker.setMap(marker.getMap() ? null : map);
   });
@@ -158,7 +160,7 @@ function initMap() {
   markers = sortedData.map((element) => {
     var marker = new google.maps.Marker({
       position: new google.maps.LatLng(element.latitude, element.longitude),
-      title: element.quantity,
+      title: parseFloat(element.quantity).toFixed(0),
       map: null,
     });
     return marker;
@@ -179,7 +181,7 @@ function initMap() {
       markersToRender.forEach((marker) => {
         marker.setIcon(getMarkerIcon(marker.getTitle(), minMarker, maxMarker));
         marker.setZIndex(parseFloat(marker.getTitle()));
-        marker.setMap(map);
+        marker.setMap(markersEnabled ? map : null);
       });
     }
   });
