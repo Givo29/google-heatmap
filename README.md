@@ -22,4 +22,4 @@ That JavaScript file then needs to be imported in `index.html` so `index.js` can
 ```
 
 ## Example
-![image](https://user-images.githubusercontent.com/21019692/117752881-e85ad600-b25a-11eb-8cb7-c7bc609a9ae1.png)
+![image](https://user-images.githubusercontent.com/21019692/117767888-e7cf3900-b274-11eb-8e7f-c3c8844eae28.png)
