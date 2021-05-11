@@ -1,5 +1,5 @@
 let map, heatmap;
-let markers = [];
+let markersToRender = [];
 const locationData = parseCSV(data);
 const sortedData = locationData.sort(
   (a, b) => parseFloat(b.quantity) - parseFloat(a.quantity)
@@ -26,8 +26,8 @@ function toggleHeatmap() {
 }
 
 function togglePins() {
-  markers.forEach((marker) => {
-    marker.setMap(marker.getMap() === map ? null : map);
+  markersToRender.forEach((marker) => {
+    marker.setMap(marker.getMap() ? null : map);
   });
 }
 
@@ -69,6 +69,21 @@ function initSlider(minQuantity, maxQuantity) {
   document.getElementById("sliderLabel").innerHTML = maxQuantity;
 }
 
+function getMarkerIcon(qty, min, max) {
+  let percent = (qty - min) / (max - min);
+  let svgMarker = {
+    path:
+      "M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z",
+    fillColor: getColour(percent),
+    fillOpacity: 1,
+    strokeWeight: 0,
+    rotation: 0,
+    scale: 2,
+    anchor: new google.maps.Point(15, 30),
+  };
+  return svgMarker;
+}
+
 function initMap() {
   let maxQuantity = sortedData[0].quantity;
   let minQuantity = sortedData[sortedData.length - 1].quantity;
@@ -84,50 +99,49 @@ function initMap() {
     "rgba(255, 0, 0, 1)",
   ];
   const greyMap = [
-      {
-        featureType: "all",
-        elementType: "all",
-        stylers: [{ lightness: -10 }],
-      },
-      {
-        featureType: "transit",
-        elementType: "all",
-        stylers: [{ visibility: "off" }],
-      },
-      {
-        featureType: "administrative",
-        elementType: "all",
-        stylers: [{ saturation: -100 }],
-      },
-      {
-        featureType: "poi",
-        elementType: "all",
-        stylers: [{ visibility: "off" }],
-      },
-      {
-        featureType: "landscape",
-        elementType: "all",
-        stylers: [{ saturation: -100, lightness: -10 }],
-      },
-      {
-        featureType: "road",
-        elementType: "all",
-        stylers: [{ visibility: "off" }],
-      },
-      {
-        featureType: "water",
-        elementType: "labels",
-        stylers: [{ visibility: "off" }],
-      },
-    ],
-    
-    map = new google.maps.Map(document.getElementById("map"), {
-      zoom: 15,
-      center: { lat: 37.775, lng: -122.434 },
-      mapTypeControlOptions: {
-        mapTypeIds: ["roadmap", "satellite", "hybrid", "terrain", "grey"],
-      },
-    });
+    {
+      featureType: "all",
+      elementType: "all",
+      stylers: [{ lightness: -10 }],
+    },
+    {
+      featureType: "transit",
+      elementType: "all",
+      stylers: [{ visibility: "off" }],
+    },
+    {
+      featureType: "administrative",
+      elementType: "all",
+      stylers: [{ saturation: -100 }],
+    },
+    {
+      featureType: "poi",
+      elementType: "all",
+      stylers: [{ visibility: "off" }],
+    },
+    {
+      featureType: "landscape",
+      elementType: "all",
+      stylers: [{ saturation: -100, lightness: -10 }],
+    },
+    {
+      featureType: "road",
+      elementType: "all",
+      stylers: [{ visibility: "off" }],
+    },
+    {
+      featureType: "water",
+      elementType: "labels",
+      stylers: [{ visibility: "off" }],
+    },
+  ];
+  map = new google.maps.Map(document.getElementById("map"), {
+    zoom: 7,
+    center: { lat: 37.775, lng: -122.434 },
+    mapTypeControlOptions: {
+      mapTypeIds: ["roadmap", "satellite", "hybrid", "terrain", "grey"],
+    },
+  });
   map.mapTypes.set(
     "grey",
     new google.maps.StyledMapType(greyMap, { name: "Grey Map" })
@@ -141,34 +155,33 @@ function initMap() {
     gradient: gradient,
   });
 
-  // Adding markers for locations with top 100 values, scaled by colour
-  sortedData.slice(0, 100).forEach((element) => {
-    let percent =
-      (element.quantity - minQuantity) / (maxQuantity - minQuantity);
-    const infoWindow = new google.maps.InfoWindow();
-    const svgMarker = {
-      path: "M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z",
-      fillColor: getColour(percent),
-      fillOpacity: 1,
-      strokeWeight: 0,
-      rotation: 0,
-      scale: 2,
-      anchor: new google.maps.Point(15, 30),
-    };
+  markers = sortedData.map((element) => {
     var marker = new google.maps.Marker({
       position: new google.maps.LatLng(element.latitude, element.longitude),
-      icon: svgMarker,
-      zIndex: percent,
-      map,
+      title: element.quantity,
+      map: null,
     });
-    markers.push(marker);
+    return marker;
+  });
 
-    // Display values of each point on hover
-    marker.addListener("mouseover", (_) => {
-      infoWindow.setContent(parseFloat(element.quantity).toFixed(2));
-      infoWindow.open(marker.getMap(), marker);
+  google.maps.event.addListener(map, "bounds_changed", (_) => {
+    markersToRender = markers.filter((marker) => {
+      marker.setMap(null);
+      return map.getBounds().contains(marker.position);
     });
-    marker.addListener("mouseout", (_) => infoWindow.close());
+    markersToRender.length =
+      markersToRender.length > 100 ? 100 : markersToRender.length;
+
+    if (markersToRender.length >= 1) {
+      maxMarker = markersToRender[0].title;
+      minMarker = markersToRender[markersToRender.length - 1].title;
+
+      markersToRender.forEach((marker) => {
+        marker.setIcon(getMarkerIcon(marker.getTitle(), minMarker, maxMarker));
+        marker.setZIndex(parseFloat(marker.getTitle()));
+        marker.setMap(map);
+      });
+    }
   });
   initSlider(minQuantity, maxQuantity);
 }
