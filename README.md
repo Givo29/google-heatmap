@@ -1,5 +1,7 @@
 # google-heatmap
 
+Google Maps API Powered heatmap that also includes dynamically loaded and coloured markers.
+
 ## Setup
 1. Go to the google cloud platform and create a new project
 2. Add the `Maps JavaScript API` to the project and create a new API key
@@ -18,3 +20,6 @@ That JavaScript file then needs to be imported in `index.html` so `index.js` can
 ```html
 <script src="./data/pointData.js"></script>
 ```
+
+## Example
+![image](https://user-images.githubusercontent.com/21019692/117752881-e85ad600-b25a-11eb-8cb7-c7bc609a9ae1.png)
