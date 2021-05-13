@@ -37,7 +37,9 @@ function togglePins() {
 function changeMaxRange(value) {
   let maxQuantity = sortedData[0].quantity;
   let minQuantity = sortedData[sortedData.length - 1].quantity;
-  heatmap.setData(getWeightedPoints(minQuantity, maxQuantity, value));
+  heatmap.setData(
+    getWeightedPoints(sortedData, minQuantity, maxQuantity, value)
+  );
   document.getElementById("sliderLabel").innerHTML = value;
 }
 
@@ -50,8 +52,8 @@ function getColour(value) {
 }
 
 // Calculate weight based on quantity of each point
-function getWeightedPoints(minQuantity, maxQuantity, value) {
-  var locations = sortedData.map((element) => {
+function getWeightedPoints(data, minQuantity, maxQuantity, value) {
+  var locations = data.map((element) => {
     if (element.quantity <= value) {
       let percent =
         ((element.quantity - minQuantity) / (maxQuantity - minQuantity)) * 100;
@@ -74,8 +76,7 @@ function initSlider(minQuantity, maxQuantity) {
 function getMarkerIcon(qty, min, max) {
   let percent = (qty - min) / (max - min);
   let svgMarker = {
-    path:
-      "M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z",
+    path: "M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z",
     fillColor: getColour(percent),
     fillOpacity: 1,
     strokeWeight: 0,
@@ -151,16 +152,20 @@ function initMap() {
   map.setMapTypeId("grey");
 
   heatmap = new google.maps.visualization.HeatmapLayer({
-    data: getWeightedPoints(minQuantity, maxQuantity, maxQuantity),
+    data: getWeightedPoints(sortedData, minQuantity, maxQuantity, maxQuantity),
     radius: 15,
     map: map,
     gradient: gradient,
   });
 
-  
   markers = sortedData.map((element) => {
     let infoWindow = new google.maps.InfoWindow();
-    infoWindow.setContent(`<strong>Name:</strong> ${element.name}<br /><strong>ID:</strong> ${element.id}<br /><strong>Quantity:</strong> ${parseFloat(element.quantity).toFixed(2)}`
+    infoWindow.setContent(
+      `<strong>Name:</strong> ${element.name}<br /><strong>ID:</strong> ${
+        element.id
+      }<br /><strong>Quantity:</strong> ${parseFloat(element.quantity).toFixed(
+        2
+      )}`
     );
     var marker = new google.maps.Marker({
       position: new google.maps.LatLng(element.latitude, element.longitude),
@@ -176,9 +181,19 @@ function initMap() {
     return marker;
   });
 
-  google.maps.event.addListener(map, "bounds_changed", (_) => {
+  google.maps.event.addListener(map, "idle", (_) => {
+    let heatMapData = sortedData.filter((element) => {
+      return map
+        .getBounds()
+        .contains(new google.maps.LatLng(element.latitude, element.longitude));
+    });
+    heatmap.setData(
+      getWeightedPoints(heatMapData, minQuantity, maxQuantity, maxQuantity)
+    );
+    markersToRender = []
     markersToRender = markers.filter((marker) => {
       marker.setMap(null);
+      if (markersToRender.length >= 100) return false;
       return map.getBounds().contains(marker.position);
     });
     markersToRender.length =
